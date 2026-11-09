@@ -1,0 +1,27 @@
+name: IA agendada
+on:
+  schedule:
+    - cron: "0 9 * * 1-5"   # 06h em Brasília, dias úteis
+  workflow_dispatch:         # botão para rodar na hora
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+jobs:
+  trabalhar:
+    if: vars.IA_AGENDADA == 'true'   # desligado até o Módulo 6
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Leia o CLAUDE.md. Pegue a issue aberta mais antiga com o label "ia".
+            Crie uma branch, implemente, rode npm ci e npm run build.
+            Se o build passar, abra um PR que feche a issue e comente nela o link.
+            Se travar, comente na issue o que falta e pare.
+          claude_args: |
+            --max-turns 30
+            --allowedTools "Bash(npm:*),Bash(npx:*),Bash(git:*),Bash(gh:*),Edit,Write"
